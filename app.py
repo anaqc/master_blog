@@ -3,15 +3,11 @@ import json
 
 
 app = Flask(__name__)
+
+# Gloval variables
 DATA_FILE = "data/data.json"
 
-"""
-[
-    {'id': 1, 'author': 'John Doe', 'title': 'First Post', 'content': 'This is my first post.'},
-    {'id': 2, 'author': 'Jane Doe', 'title': 'Second Post', 'content': 'This is another post.'},
-    # More blog posts can go here...
-]
-"""
+
 @app.route('/')
 def index():
     # add code here to fetch the job posts from a file
@@ -69,7 +65,7 @@ def add():
 @app.route("/delete/<int:post_id>", methods=['POST'])
 def delete(post_id):
     """
-    This function delete a author by Id
+    This function delete a post by Id
     """
     data = read_data()
     data.pop(post_id)
@@ -107,7 +103,7 @@ def update(post_id):
 
 def fetch_post_by_id(post_id):
     """
-       Retrieves a blog post by its ID.
+       This function Retrieves a blog post by its ID.
     """
     data = read_data()
     # Ensure post_id is within the valid range
@@ -118,6 +114,10 @@ def fetch_post_by_id(post_id):
 
 @app.route("/like/<int:id_post>",  methods=['POST'])
 def like(id_post):
+    """
+    This function show the “Like” button for each post. The button display the number of likes the
+    post currently has, which is 0 initially.
+    """
     new_data = []
     data = read_data()
     if 0 <= id_post < len(data):
