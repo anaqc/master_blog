@@ -3,6 +3,7 @@ import json
 
 
 app = Flask(__name__)
+DATA_FILE = "data/data.json"
 
 """
 [
@@ -20,18 +21,36 @@ def index():
 
 
 def read_data():
-    with open('data/data.json', 'r') as f:
-        data = json.load(f)
-    if data == "" or  data == None:
+    """
+    This function read all the data from DATA_FILE and return it
+    """
+    try:
+        with open(DATA_FILE, 'r') as f:
+            data = json.load(f)
+        if data == "" or data == None:
+            return []
+        return data
+    except FileNotFoundError:
         return []
-    return data
+
 
 def write_date(data):
-    with open('data/data.json', 'w') as f:
+    """
+    This function write the data in the DATA_FILE
+    """
+    with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=2)
+
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():
+    """
+     This function handles the addition of a new Author.
+    - If the request method is 'POST', it processes the submitted form data,
+      creates a new blog post, and appends it to the existing data.
+    - If the request method is 'GET', it renders the 'add.html' template,
+      which contains the form for adding a new post.
+    """
     data = read_data()
     if request.method == 'POST':
         new_author = {
@@ -44,6 +63,16 @@ def add():
         write_date(data)
         return redirect(url_for('index'))
     return render_template('add.html')
+
+
+@app.route("/delete/<int:post_id>", methods=['POST'])
+def delete(post_id):
+    data = read_data()
+    data.pop(post_id)
+    write_date(data)
+    return redirect(url_for('index'))
+
+
 
 
 if __name__ == '__main__':
