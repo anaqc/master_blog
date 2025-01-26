@@ -34,7 +34,7 @@ def read_data():
         return []
 
 
-def write_date(data):
+def write_data(data):
     """
     This function write the data in the DATA_FILE
     """
@@ -60,19 +60,59 @@ def add():
             "content" : request.form.get("content")
         }
         data.append(new_author)
-        write_date(data)
+        write_data(data)
         return redirect(url_for('index'))
     return render_template('add.html')
 
 
 @app.route("/delete/<int:post_id>", methods=['POST'])
 def delete(post_id):
+    """
+    This function delete a author by Id
+    """
     data = read_data()
     data.pop(post_id)
-    write_date(data)
+    write_data(data)
     return redirect(url_for('index'))
 
 
+@app.route("/update/<int:post_id>", methods=["GET","POST"])
+def update(post_id):
+    """
+    this function Fetch the blog posts from the JSON file
+    """
+    data = read_data()
+    post = fetch_post_by_id(post_id)
+    new_data = []
+    if post is None:
+        # Post not found
+        return "Post not found", 404
+
+    if request.method == 'POST':
+        # Update the post in the JSON file
+        for i, dict_data in enumerate(data):
+            if i == post_id:
+                dict_data["author"] = request.form.get("author")
+                dict_data["title"] = request.form.get("title")
+                dict_data["content"] = request.form.get("content")
+            new_data.append(dict_data)
+        write_data(data)
+        # Redirect back to index
+        return redirect(url_for('index'))
+    # Else, it's a GET request
+    # So display the update.html page
+    return render_template('update.html', post=post)
+
+
+def fetch_post_by_id(post_id):
+    """
+       Retrieves a blog post by its ID.
+    """
+    data = read_data()
+    # Ensure post_id is within the valid range
+    if 0 <= post_id < len(data):
+        return data[post_id]
+    return None
 
 
 if __name__ == '__main__':
