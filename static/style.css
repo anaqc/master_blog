@@ -25,3 +25,14 @@ h1 {
 .post p {
     margin: 10px 0;
 }
+
+.container {
+    display: flex;
+    flex-direction: row;
+}
+
+.item {
+    background-color: lightblue;
+    padding: 10px;
+    margin: 5px;
+}

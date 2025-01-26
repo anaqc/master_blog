@@ -57,7 +57,8 @@ def add():
             "id" : len(read_data()),
             "author" : request.form.get("author"),
             "title" : request.form.get("title"),
-            "content" : request.form.get("content")
+            "content" : request.form.get("content"),
+            "like": 0
         }
         data.append(new_author)
         write_data(data)
@@ -114,6 +115,18 @@ def fetch_post_by_id(post_id):
         return data[post_id]
     return None
 
+
+@app.route("/like/<int:id_post>",  methods=['POST'])
+def like(id_post):
+    new_data = []
+    data = read_data()
+    if 0 <= id_post < len(data):
+        for i, dict_data in enumerate(data):
+            if i == id_post:
+                dict_data["like"] += 1
+            new_data.append(dict_data)
+    write_data(new_data)
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(host="127.0.0.1", port=5000, debug=True)
