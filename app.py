@@ -87,6 +87,10 @@ def delete(post_id):
     This function delete a post by Id
     """
     data = read_data()
+    post = fetch_post_by_id(post_id)
+    if post is None:
+        # Post not found
+        return page_not_found("Post not found")
     data.pop(post_id)
     write_data(data)
     return redirect(url_for('index'))
@@ -102,15 +106,14 @@ def update(post_id):
     new_data = []
     if post is None:
         # Post not found
-        return "Post not found", 404
-
+        return page_not_found("Post not found")
     if request.method == 'POST':
         # Update the post in the JSON file
         for i, dict_data in enumerate(data):
             if i == post_id:
-                dict_data["author"] = request.form.get("author")
-                dict_data["title"] = request.form.get("title")
-                dict_data["content"] = request.form.get("content")
+                dict_data["author"] = request.form.get("author", dict_data["author"])
+                dict_data["title"] = request.form.get("title", dict_data["title"])
+                dict_data["content"] = request.form.get("content", dict_data["content"])
             new_data.append(dict_data)
         write_data(data)
         # Redirect back to index
@@ -126,8 +129,9 @@ def fetch_post_by_id(post_id):
     """
     data = read_data()
     # Ensure post_id is within the valid range
-    if 0 <= post_id < len(data):
-        return data[post_id]
+    for post in data:
+        if post["id"] == post_id:
+            return data[post_id]
     return None
 
 
@@ -137,6 +141,10 @@ def like(id_post):
     This function show the “Like” button for each post. The button display the number of likes the
     post currently has, which is 0 initially.
     """
+    post = fetch_post_by_id(id_post)
+    if post is None:
+        # Post not found
+        return page_not_found("Post not found")
     new_data = []
     data = read_data()
     if 0 <= id_post < len(data):
