@@ -1,11 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for
 import json
+from pathlib import Path
 
 
 app = Flask(__name__)
 
-# Gloval variables
-DATA_FILE = "data/data.json"
+# Gloval variables use pathlib for better path handling
+DATA_FILE = Path("data/data.json")
 
 
 @app.route('/')
@@ -18,24 +19,42 @@ def index():
 
 def read_data():
     """
-    This function read all the data from DATA_FILE and return it
+    Reads all the data from DATA_FILE and returns it.
+    Returns an empty list if the file does not exist or is empty.
     """
     try:
-        with open(DATA_FILE, 'r') as f:
-            data = json.load(f)
-        if data == "" or data == None:
+        # Check if file exists before opening
+        if not DATA_FILE.exists():
             return []
-        return data
-    except FileNotFoundError:
+        with DATA_FILE.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        # Return data or empty list if None/empty
+        return data if data else []
+    # Handle corrupt JSON file
+    except json.JSONDecodeError:
+        return []
+    # Catch unexpected errors
+    except Exception as e:
         return []
 
 
 def write_data(data):
-    """
-    This function write the data in the DATA_FILE
-    """
-    with open(DATA_FILE, 'w') as f:
-        json.dump(data, f, indent=2)
+    """Writes data to a JSON file safely, ensuring the directory exists."""
+    try:
+        # Ensure the 'data' directory exists before writing the file
+        DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+        # Open the file and write data as JSON
+        with DATA_FILE.open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        print(f"Data successfully written to {DATA_FILE}")
+    except PermissionError:
+        print(f"Error: No permission to write to '{DATA_FILE}'. Try running with admin rights.")
+    except IsADirectoryError:
+        print(f"Error: '{DATA_FILE}' is a directory, not a file.")
+    except IOError as e:
+        print(f"IO error occurred: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
 
 
 @app.route('/add', methods=['GET', 'POST'])
@@ -50,7 +69,7 @@ def add():
     data = read_data()
     if request.method == 'POST':
         new_author = {
-            "id" : len(read_data()),
+            "id" : max(post['id'] for post in data) + 1,
             "author" : request.form.get("author"),
             "title" : request.form.get("title"),
             "content" : request.form.get("content"),
